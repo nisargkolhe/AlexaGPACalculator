@@ -13,8 +13,8 @@
             },
             card: {
                 type: 'Simple',
-                title: `SessionSpeechlet - ${title}`,
-                content: `SessionSpeechlet - ${output}`,
+                title: `${title}`,
+                content: `${output}`,
             },
             reprompt: {
                 outputSpeech: {
@@ -39,7 +39,12 @@
 
     function getWelcomeResponse(callback) {
         // If we wanted to initialize the session to have some attributes we could add those here.
-        const sessionAttributes = {};
+        const sessionAttributes = {
+            currGPA: "",
+            totalCredits: "",
+            semGPA: "",
+            semCredits: ""
+        };
         const cardTitle = 'Welcome';
         const speechOutput = 'Welcome to the GPA Calculator. ' +
             'Please tell me your current GPA by saying ' + 'my current GPA is three point four';
@@ -63,7 +68,7 @@
 
 
     function setCurrentGPAInSession(intent, session, callback) {
-        const cardTitle = intent.name;
+        const cardTitle = "Setting Current GPA";
         const gpaSlot = intent.slots.gpa;
         const decimalSlot = intent.slots.decimal;
         let decimal = 0;
@@ -78,16 +83,22 @@
             decimal = Number(decimal);
             decimal = decimal / 10;
         }
-        if (gpaSlot && gpaSlot.value) {
+        if (gpaSlot && gpaSlot.value !== null) {
             gpa = gpaSlot.value;
             gpa = Number(gpa);
             if (decimal) {
                 gpa += Number(decimal);
             }
-            sessionAttributes.currGPA = gpa;
-            speechOutput = `I now know your gpa is ${gpa}. Please tell me your total credits by saying ` +
-                "my total credits are 29";
-            repromptText = "You can tell me your total credits by saying my total credits are 29";
+            if(gpa >= 0){
+                sessionAttributes.currGPA = gpa;
+                speechOutput = `I now know your gpa is ${gpa}. Please tell me your total credits by saying ` +
+                    "my total credits are 29";
+                repromptText = "You can tell me your total credits by saying my total credits are 29";
+            } else {
+                speechOutput = "I'm not sure what your current GPA is. Please try again.";
+                repromptText = "I'm not sure what your current GPA is. You can tell me your " +
+                    'GPA by saying, my current GPA is three point four';
+            }
         } else {
             speechOutput = "I'm not sure what your current GPA is. Please try again.";
             repromptText = "I'm not sure what your current GPA is. You can tell me your " +
@@ -99,19 +110,25 @@
     }
 
     function setTotalCreditsInSession(intent, session, callback) {
-        const cardTitle = intent.name;
+        const cardTitle = "Setting Total Credits";
         const totalCreditsSlot = intent.slots.totalCredits;
         let repromptText = '';
         let sessionAttributes = session.attributes;
         const shouldEndSession = false;
         let speechOutput = '';
-
-        if (totalCreditsSlot) {
+        if(totalCreditsSlot && totalCreditsSlot.value !== null){
             const totalCredits = Number(totalCreditsSlot.value);
-            sessionAttributes.totalCredits = totalCredits;
-            speechOutput = `I now know your total credits are ${totalCredits}. Please tell me your semester GPA by saying ` +
-                "my semester GPA is three point four";
-            repromptText = "You can tell me your semester GPA by saying my semester GPA is three point four";
+            
+            if (totalCredits >= 0) {
+                sessionAttributes.totalCredits = totalCredits;
+                speechOutput = `I now know your total credits are ${totalCredits}. Please tell me your semester GPA by saying ` +
+                    "my semester GPA is three point four";
+                repromptText = "You can tell me your semester GPA by saying my semester GPA is three point four";
+            } else {
+                speechOutput = "I'm not sure how many total credits you have. Please try again.";
+                repromptText = "I'm not sure how many total credits you have. You can tell me your total credits " +
+                    'by saying, my total credits are 29';
+            }
         } else {
             speechOutput = "I'm not sure how many total credits you have. Please try again.";
             repromptText = "I'm not sure how many total credits you have. You can tell me your total credits " +
@@ -123,7 +140,7 @@
     }
 
     function setSemGPAInSession(intent, session, callback) {
-        const cardTitle = intent.name;
+        const cardTitle = "Setting Semester GPA";
         const gpaSlot = intent.slots.gpa;
         const decimalSlot = intent.slots.decimal;
         let decimal = 0;
@@ -138,17 +155,22 @@
             decimal = Number(decimal);
             decimal = decimal / 10;
         }
-        if (gpaSlot && gpaSlot.value) {
+        if (gpaSlot && gpaSlot.value !== null) {
             gpa = gpaSlot.value;
             gpa = Number(gpa);
             if (decimal) {
                 gpa += Number(decimal);
             }
-            sessionAttributes.semGPA = gpa;
-            speechOutput = `I now know your semester gpa is ${gpa}. Please tell me your semester credits by saying` +
-                " my semester credits are 15";
-            repromptText = "You can tell me your semester credits by saying my semester credits are 15";
-
+            if(gpa >= 0){
+                sessionAttributes.semGPA = gpa;
+                speechOutput = `I now know your semester gpa is ${gpa}. Please tell me your semester credits by saying` +
+                    " my semester credits are 15";
+                repromptText = "You can tell me your semester credits by saying my semester credits are 15";
+            } else {
+                speechOutput = "I'm not sure what your semester GPA is. Please try again.";
+                repromptText = "I'm not sure what your semester GPA is. You can tell me your semester GPA by saying " +
+                    'my semester GPA is three point four';
+            }
         } else {
             speechOutput = "I'm not sure what your semester GPA is. Please try again.";
             repromptText = "I'm not sure what your semester GPA is. You can tell me your semester GPA by saying " +
@@ -160,19 +182,25 @@
     }
 
     function setSemCreditsInSession(intent, session, callback) {
-        const cardTitle = intent.name;
+        const cardTitle = "Setting Semester Credits";
         const semCreditsSlot = intent.slots.semCredits;
         let repromptText = '';
         let sessionAttributes = session.attributes;
         const shouldEndSession = false;
         let speechOutput = '';
 
-        if (semCreditsSlot) {
+        if (semCreditsSlot && semCreditsSlot.value !== null) {
             const semCredits = Number(semCreditsSlot.value);
-            sessionAttributes.semCredits = semCredits;
-            speechOutput = `I now know your semester credits are ${semCredits}. You can ask me to calculate your GPA by saying ` +
-                "calculate my GPA";
-            repromptText = "You can ask me to calculate your GPA by saying calculate my GPA";
+            if(semCredits >= 0){
+                sessionAttributes.semCredits = semCredits;
+                speechOutput = `I now know your semester credits are ${semCredits}. You can ask me to calculate your GPA by saying ` +
+                    "calculate my GPA";
+                repromptText = "You can ask me to calculate your GPA by saying calculate my GPA";
+            } else {
+                speechOutput = "I'm not sure how many credits this semester had. Please try again.";
+                repromptText = "I'm not sure how many credits this semester had. You can tell me your semester credits " +
+                    'by saying, my semester credits are 15';
+            }
         } else {
             speechOutput = "I'm not sure how many credits this semester had. Please try again.";
             repromptText = "I'm not sure how many credits this semester had. You can tell me your semester credits " +
@@ -184,6 +212,7 @@
     }
 
     function calculateGPA(intent, session, callback) {
+        const cardTitle = "Calculating your GPA";
         let currGPA;
         let totalCredits;
         let semGPA;
@@ -222,7 +251,7 @@
         // If the user does not respond or says something that is not understood, the session
         // will end.
         callback(sessionAttributes,
-            buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+            buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
     }
 
     // --------------- Events -----------------------
